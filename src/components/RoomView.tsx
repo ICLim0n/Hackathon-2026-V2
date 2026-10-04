@@ -596,6 +596,8 @@ export const RoomView: React.FC<RoomViewProps> = ({
                                   .sort((first, second) => Number(first) - Number(second))
                                   .join(',')
                               );
+                              setSelectedBookNumbers([]);
+                              setActiveBookIndex(null);
                               setSelectedObject(null);
                             }
                           }}
