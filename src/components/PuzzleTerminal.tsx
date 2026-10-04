@@ -82,6 +82,16 @@ export const PuzzleTerminal: React.FC<PuzzleTerminalProps> = ({
         </div>
         <div className="flex items-center gap-2">
           <span
+            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+              puzzle.attempts >= puzzle.maxAttempts
+                ? 'bg-amber-950 text-amber-300 border border-amber-700'
+                : 'bg-slate-900 text-slate-400 border border-slate-700'
+            }`}
+            aria-live="polite"
+          >
+            ATTEMPTS {puzzle.attempts}/{puzzle.maxAttempts}
+          </span>
+          <span
             className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
               puzzle.isSolved
                 ? 'bg-emerald-950 text-emerald-400 border border-emerald-700'

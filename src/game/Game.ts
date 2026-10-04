@@ -1,6 +1,7 @@
 import { createHeistRooms } from './levelData';
 import { Inventory } from './Inventory';
 import { Item } from './Item';
+import { Puzzle } from './Puzzle';
 import { Room } from './Room';
 import { sound } from './audio';
 
@@ -20,6 +21,7 @@ export class Game {
   inventory: Inventory;
   timeRemaining: number;
   isGameOver: boolean;
+  gameOverReason: 'timeout' | 'failed-attempts' | null;
   isVictory: boolean;
   isPaused: boolean;
   isTimerEnabled: boolean;
@@ -34,6 +36,7 @@ export class Game {
     this.inventory = new Inventory();
     this.timeRemaining = ROOM_TIME_LIMIT;
     this.isGameOver = false;
+    this.gameOverReason = null;
     this.isVictory = false;
     this.isPaused = false;
     this.isTimerEnabled = false;
@@ -104,7 +107,7 @@ export class Game {
         }
 
         if (this.timeRemaining === 0) {
-          this.triggerGameOver('SECURITY PROTOCOL LOCKDOWN: TIME EXPIRED');
+          this.triggerGameOver('timeout');
         }
       }
       this.notify();
@@ -160,10 +163,16 @@ export class Game {
       currentRoom.puzzle.requiredItemName &&
       !this.inventory.hasItem(currentRoom.puzzle.requiredItemName)
     ) {
+      currentRoom.puzzle.recordAttempt();
+      if (currentRoom.puzzle.attempts >= currentRoom.puzzle.maxAttempts) {
+        this.triggerGameOver('failed-attempts');
+      }
       sound.playError();
       return {
         success: false,
-        message: `ACCESS DENIED. FIND THE ${currentRoom.puzzle.requiredItemName.toUpperCase()} FIRST.`,
+        message: this.isGameOver
+          ? 'FACILITY LOCKDOWN. TOO MANY INVALID ATTEMPTS.'
+          : `ACCESS DENIED. FIND THE ${currentRoom.puzzle.requiredItemName.toUpperCase()} FIRST. ${currentRoom.puzzle.maxAttempts - currentRoom.puzzle.attempts} ATTEMPTS REMAINING.`,
         isRoomComplete: false,
         isGameVictory: false,
       };
@@ -196,11 +205,16 @@ export class Game {
         };
       }
     } else {
+      if (currentRoom.puzzle.attempts >= currentRoom.puzzle.maxAttempts) {
+        this.triggerGameOver('failed-attempts');
+      }
       sound.playError();
       this.notify();
       return {
         success: false,
-        message: 'ACCESS DENIED. INVALID CREDENTIALS.',
+        message: this.isGameOver
+          ? 'FACILITY LOCKDOWN. TOO MANY INVALID ATTEMPTS.'
+          : `ACCESS DENIED. INVALID CREDENTIALS. ${currentRoom.puzzle.maxAttempts - currentRoom.puzzle.attempts} ATTEMPTS REMAINING.`,
         isRoomComplete: false,
         isGameVictory: false,
       };
@@ -259,6 +273,7 @@ export class Game {
     currentRoom.reset();
     this.timeRemaining = ROOM_TIME_LIMIT;
     this.isGameOver = false;
+    this.gameOverReason = null;
     sound.playClick();
     this.notify();
   }
@@ -273,6 +288,7 @@ export class Game {
     this.inventory.clear();
     this.timeRemaining = ROOM_TIME_LIMIT;
     this.isGameOver = false;
+    this.gameOverReason = null;
     this.isVictory = false;
     this.isPaused = false;
     this.hintsUsed = 0;
@@ -285,8 +301,9 @@ export class Game {
   /**
    * Triggers game over lockdown when timer expires.
    */
-  private triggerGameOver(reason: string): void {
+  private triggerGameOver(reason: 'timeout' | 'failed-attempts'): void {
     this.isGameOver = true;
+    this.gameOverReason = reason;
     this.stopTimer();
     sound.playError();
     this.notify();

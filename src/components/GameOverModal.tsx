@@ -14,6 +14,8 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   onRetryRoom,
   onRestartFull,
 }) => {
+  const failedAttempts = game.gameOverReason === 'failed-attempts';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-red-950/80 backdrop-blur-md animate-in fade-in duration-200">
       <div className="bg-slate-900 border-2 border-red-600 rounded-xl shadow-2xl max-w-md w-full p-6 text-slate-100 text-center font-mono">
@@ -26,13 +28,17 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         </span>
 
         <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
-          TIME LIMIT EXPIRED
+          {failedAttempts ? 'TOO MANY INVALID ATTEMPTS' : 'TIME LIMIT EXPIRED'}
         </h2>
 
         <p className="text-slate-300 text-xs md:text-sm font-sans mb-6 leading-relaxed">
-          The security guard sweep caught movement on thermal sensors in{' '}
-          <span className="text-cyan-400 font-bold">{game.getCurrentRoom().name}</span>. The blast
-          doors sealed shut.
+          {failedAttempts
+            ? <>Three incorrect answers triggered a security lockdown in </>
+            : <>The security guard sweep caught movement on thermal sensors in </>}
+          <span className="text-cyan-400 font-bold">{game.getCurrentRoom().name}</span>
+          {failedAttempts
+            ? '. Restart this chamber to reset your attempts and try again.'
+            : '. The blast doors sealed shut.'}
         </p>
 
         <div className="space-y-2.5">
@@ -44,7 +50,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             className="w-full py-3 px-4 rounded bg-red-600 hover:bg-red-500 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>RETRY CURRENT CHAMBER ({game.getCurrentRoom().timeLimit}s)</span>
+            <span>RETRY CURRENT CHAMBER</span>
           </button>
 
           <button

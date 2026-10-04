@@ -380,7 +380,9 @@ export function createHeistRooms(): Room[] {
         'In drill order, the safe responses are VERIFY, PAUSE, REPORT, CONFIRM.',
       ],
       'text',
-      'VERIFY, PAUSE, REPORT, CONFIRM'
+      'VERIFY, PAUSE, REPORT, CONFIRM',
+      undefined,
+      1
     ),
     90,
     'rose',

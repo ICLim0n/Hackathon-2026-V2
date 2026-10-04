@@ -4,6 +4,7 @@
  * Keeps track of challenge text, correct answers, progressive hints, and solve state.
  */
 export class Puzzle {
+  static readonly MAX_ATTEMPTS = 3;
   question: string;
   correctAnswer: string;
   hint: string;
@@ -14,6 +15,7 @@ export class Puzzle {
   type: 'code' | 'text' | 'combination';
   placeholder: string;
   requiredItemName?: string;
+  maxAttempts: number;
 
   constructor(
     question: string,
@@ -22,7 +24,8 @@ export class Puzzle {
     hints: string[] = [],
     type: 'code' | 'text' | 'combination' = 'code',
     placeholder: string = 'ENTER CODE',
-    requiredItemName?: string
+    requiredItemName?: string,
+    maxAttempts: number = Puzzle.MAX_ATTEMPTS
   ) {
     this.question = question;
     this.correctAnswer = correctAnswer.trim();
@@ -34,6 +37,7 @@ export class Puzzle {
     this.type = type;
     this.placeholder = placeholder;
     this.requiredItemName = requiredItemName;
+    this.maxAttempts = maxAttempts;
   }
 
   /**
@@ -41,7 +45,7 @@ export class Puzzle {
    * Compares strings case-insensitively and trims whitespace.
    */
   checkAnswer(submittedAnswer: string): boolean {
-    this.attempts++;
+    this.recordAttempt();
     const cleanSubmitted = submittedAnswer.trim().replace(/\s*,\s*/g, ',').toLowerCase();
     const cleanCorrect = this.correctAnswer.trim().replace(/\s*,\s*/g, ',').toLowerCase();
 
@@ -50,6 +54,10 @@ export class Puzzle {
       return true;
     }
     return false;
+  }
+
+  recordAttempt(): void {
+    this.attempts++;
   }
 
   /**

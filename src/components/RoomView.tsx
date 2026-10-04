@@ -444,6 +444,7 @@ export const RoomView: React.FC<RoomViewProps> = ({
                           onClick={() => {
                             sound.playClick();
                             if (choice.answer !== selectedObject.extraData?.correctAnswer) {
+                              onSubmitAnswer(choice.answer);
                               setDrillFeedback({
                                 message: 'Not quite. Review the scenario and choose a safer response.',
                                 isCorrect: false,
