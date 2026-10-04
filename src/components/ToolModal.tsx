@@ -147,25 +147,23 @@ export const ToolModal: React.FC<ToolModalProps> = ({ item, onClose, currentRoom
             </div>
           )}
 
-          {/* Cipher Wheel Tool */}
+          {/* Security Protocol Field Guide */}
           {item.toolType === 'cipher-tool' && (
             <div className="space-y-3 p-4 rounded bg-slate-950 border border-amber-800/80">
               <div className="flex items-center justify-between text-amber-300 font-bold">
                 <span className="flex items-center gap-1.5">
-                  <BookOpen className="w-4 h-4" /> Book Acronym & Cipher Index
+                  <BookOpen className="w-4 h-4" /> Security Protocol Field Guide
                 </span>
-                <span className="text-[10px] text-amber-400/80">A-Z PROTOCOL</span>
+                <span className="text-[10px] text-amber-400/80">SAFE RESPONSE</span>
               </div>
               <p className="text-slate-300 text-xs">
-                Syndicate library passwords are formed by extracting the first letter of each book title in sequence (acronym cipher):
+                When a request involves sensitive access, slow down and use established verification and reporting procedures:
               </p>
               <div className="bg-slate-900/90 p-2.5 rounded border border-amber-900/50 space-y-1 text-slate-300 text-[11px]">
-                <div>• Volume I: <span className="text-amber-400 font-bold">[C]</span>hronology...</div>
-                <div>• Volume II: <span className="text-amber-400 font-bold">[I]</span>nvisible...</div>
-                <div>• Volume III: <span className="text-amber-400 font-bold">[P]</span>rotocols...</div>
-                <div>• Volume IV: <span className="text-amber-400 font-bold">[H]</span>idden...</div>
-                <div>• Volume V: <span className="text-amber-400 font-bold">[E]</span>scape...</div>
-                <div>• Volume VI: <span className="text-amber-400 font-bold">[R]</span>ogue...</div>
+                <div>• Verify identity with a known, independent contact channel.</div>
+                <div>• Never disclose passwords or one-time verification codes.</div>
+                <div>• Report suspicious requests through the approved channel.</div>
+                <div>• Follow normal payment review and approval processes.</div>
               </div>
             </div>
           )}

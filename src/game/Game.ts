@@ -140,6 +140,19 @@ export class Game {
     }
 
     const currentRoom = this.getCurrentRoom();
+    if (
+      currentRoom.puzzle.requiredItemName &&
+      !this.inventory.hasItem(currentRoom.puzzle.requiredItemName)
+    ) {
+      sound.playError();
+      return {
+        success: false,
+        message: `ACCESS DENIED. FIND THE ${currentRoom.puzzle.requiredItemName.toUpperCase()} FIRST.`,
+        isRoomComplete: false,
+        isGameVictory: false,
+      };
+    }
+
     const isCorrect = currentRoom.puzzle.checkAnswer(input);
 
     if (isCorrect) {

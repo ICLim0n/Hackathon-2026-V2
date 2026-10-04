@@ -13,6 +13,7 @@ export class Puzzle {
   attempts: number;
   type: 'code' | 'text' | 'combination';
   placeholder: string;
+  requiredItemName?: string;
 
   constructor(
     question: string,
@@ -20,7 +21,8 @@ export class Puzzle {
     hint: string,
     hints: string[] = [],
     type: 'code' | 'text' | 'combination' = 'code',
-    placeholder: string = 'ENTER CODE'
+    placeholder: string = 'ENTER CODE',
+    requiredItemName?: string
   ) {
     this.question = question;
     this.correctAnswer = correctAnswer.trim();
@@ -31,6 +33,7 @@ export class Puzzle {
     this.attempts = 0;
     this.type = type;
     this.placeholder = placeholder;
+    this.requiredItemName = requiredItemName;
   }
 
   /**
@@ -39,8 +42,8 @@ export class Puzzle {
    */
   checkAnswer(submittedAnswer: string): boolean {
     this.attempts++;
-    const cleanSubmitted = submittedAnswer.trim().toLowerCase();
-    const cleanCorrect = this.correctAnswer.trim().toLowerCase();
+    const cleanSubmitted = submittedAnswer.trim().replace(/\s*,\s*/g, ',').toLowerCase();
+    const cleanCorrect = this.correctAnswer.trim().replace(/\s*,\s*/g, ',').toLowerCase();
 
     if (cleanSubmitted === cleanCorrect) {
       this.isSolved = true;

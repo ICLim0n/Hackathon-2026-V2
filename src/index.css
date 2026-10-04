@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+@keyframes laser-sweep {
+  0%, 100% {
+    transform: translateY(-42px);
+  }
+  50% {
+    transform: translateY(42px);
+  }
+}
+
+.laser-sweep {
+  animation: laser-sweep 2.8s ease-in-out infinite;
+}
+
+@keyframes fire-flicker {
+  from {
+    filter: brightness(0.85);
+    background-position: 0 0;
+  }
+  to {
+    filter: brightness(1.25);
+    background-position: 14px 0;
+  }
+}
+
+.fire-flicker {
+  animation: fire-flicker 1.2s ease-in-out infinite alternate;
+  background-image: repeating-linear-gradient(110deg, transparent 0 9px, rgb(249 115 22 / 28%) 10px 16px, rgb(239 68 68 / 30%) 17px 24px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .laser-sweep,
+  .fire-flicker {
+    animation: none;
+  }
+}

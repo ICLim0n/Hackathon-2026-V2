@@ -9,6 +9,14 @@ function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function shuffle<T>(values: T[]): T[] {
+  for (let index = values.length - 1; index > 0; index--) {
+    const swapIndex = randomInt(0, index);
+    [values[index], values[swapIndex]] = [values[swapIndex], values[index]];
+  }
+  return values;
+}
+
 /**
  * Creates the complete set of 5 rooms for the heist game.
  * Uses procedural clue generation for the Security Office to ensure
@@ -33,23 +41,15 @@ export function createHeistRooms(): Room[] {
     { revealedClues: ['KEYPAD_INK', 'NOTE_INK'] }
   );
 
-  const securityKeycard = new Item(
-    'Guard ID Badge',
-    'A Level-1 security credential left on the coffee table. Displays guard identification numbers.',
-    true,
-    'KeyRound',
-    'scratchpad'
-  );
-
   const room1 = new Room(
     1,
     'Security Office',
     'You slip past the outer cameras into the guard command station. Monitors hum with static and glowing status boards. The main security door is locked with a 4-digit biometric terminal. Search the office to piece together the lockout digits.',
-    [uvFlashlight, securityKeycard],
+    [uvFlashlight],
     new Puzzle(
-      'ENTER 4-DIGIT SECURITY OFFICE PASSCODE',
+      'GENERATE THE ONE-TIME PASSWORD (OTP) FROM THE FOUR OFFICE OBJECTS',
       room1Code,
-      'Search the 4 objects around the office (Sticky Note, Badge, Whiteboard, and Server). Each contains one digit.',
+      'Search the Sticky Note, Guard ID Badge, Shift Whiteboard, and Rack Terminal. Read one randomized digit from each object in order to assemble the temporary MFA OTP.',
       [
         'Check the Sticky Note by the monitor for Digit #1.',
         `Clue summary: Digit 1 is ${d1}, Digit 2 is ${d2}. Check the whiteboard and terminal for 3 and 4!`,
@@ -107,16 +107,9 @@ export function createHeistRooms(): Room[] {
   );
 
   // === ROOM 2: THE ART GALLERY (Binary Painting) ===
-  // Stage 2 requirement: "Stage 2 should be a large painting on a wall with text in binary that, when decrypted, reveals the final digit of the security code."
-  // Binary string representing a 4-digit passcode, e.g. 5, 2, 8, 4 -> binary 0101, 0010, 1000, 0100
-  // Or ASCII / decimal binary riddle. Let's make it 4 bytes or clean 4 nibbles:
-  // e.g. binary bytes:
-  // '5' = 00110101 (or nibble 0101 = 5)
-  // '9' = 00111001 (or nibble 1001 = 9)
-  // '2' = 00110010 (or nibble 0010 = 2)
-  // '7' = 00110111 (or nibble 0111 = 7)
-  // Clean decimal values: 5, 9, 2, 7 -> code "5927"
+  // Four 4-bit binary bands decode to the laser disarm sequence 5927.
   const room2Code = '5927';
+  const room2Options = shuffle([room2Code, '5972', '5297', '9527']);
 
   const binaryDatapad = new Item(
     'Binary Translation Guide',
@@ -174,6 +167,7 @@ export function createHeistRooms(): Room[] {
             { band: 'III. Cobalt Abyss', binary: '0010', value: '2' },
             { band: 'IV. Silver Meridian', binary: '0111', value: '7' },
           ],
+          options: room2Options,
         },
       },
       {
@@ -205,23 +199,12 @@ export function createHeistRooms(): Room[] {
     'LASER TRIPWIRES DISABLED. THE CORRIDOR PATH CLEARS.'
   );
 
-  // === ROOM 3: THE EXECUTIVE LIBRARY (Bookshelf Cipher) ===
-  // Requirement: "Stage 3 should consist of a bookshelf with clickable books that create a simple cipher puzzle and should decode to a short fictional password. Keep the puzzle understandable."
-  // Short fictional password: "PHANTOM" or "CIPHER" or "SHADOW"
-  // Let's use "CIPHER" or "PHANTOM". "CIPHER" is 6 letters:
-  // C - Chronology of Heists
-  // I - Invisible Hands
-  // P - Protocols of Deception
-  // H - Hidden Vaults
-  // E - Escape Velocity
-  // R - Rogue Operatives
-  // Clicking the books pulls them forward. When clicked, each book displays its title and spine initial!
-  // A carved riddle above the shelf: "Pull the books in numerical order of their shelf volume numbers (1 to 6) to read the secret syndicate passphrase."
-  const room3Password = 'CIPHER';
+  // === ROOM 3: THE ANCIENT LIBRARY (Security Protocols) ===
+  const room3Password = '2,8';
 
   const cipherTool = new Item(
-    'Cipher Indexing Guide',
-    'A book collector’s bookmark listing spine letter acronym rules and Caesar shift references.',
+    'Security Protocol Field Guide',
+    'A concise reference for independently verifying requests, protecting verification codes, and reporting suspicious messages.',
     true,
     'BookOpen',
     'cipher-tool'
@@ -229,39 +212,43 @@ export function createHeistRooms(): Room[] {
 
   const room3 = new Room(
     3,
-    'The Executive Library',
-    'Soaring dark oak shelves stretch to the ceiling, filled with leather-bound tomes. A brass keypad by the secret elevator door asks for an alphabetical passkey. The central bookcase contains a series of numbered collector volumes that can be clicked and inspected.',
+    'The Ancient Library',
+    'Dusty stone arches frame towering shelves of ten old volumes. Each book describes a response to a social-engineering attempt; inspect them all and select the two protocols that genuinely protect people and accounts.',
     [cipherTool],
     new Puzzle(
-      'ENTER THE 6-LETTER BOOKSHELF PASSPHRASE',
+      'SELECT THE TWO REAL SOCIAL-ENGINEERING SAFEGUARDS',
       room3Password,
-      'Click and inspect the books on the shelf. Read the first letter of each book title in order of Volume I to VI.',
+      'Inspect all ten books and choose the two sound protocols. Submit their volume numbers separated by a comma.',
       [
-        'Look at Volume I: "Chronology..." (C), Volume II: "Invisible..." (I).',
-        'Continue with Volumes III (P), IV (H), V (E), and VI (R).',
-        `The fictional password formed by the first letters is "${room3Password}".`,
+        'A trustworthy identity check uses a known, independent contact channel—not contact details supplied in a suspicious request.',
+        'Never share a one-time verification code. Report suspicious messages through your organization’s approved channel.',
+        'The two sound protocols are in volumes 2 and 8.',
       ],
       'text',
-      '6-LETTER WORD'
+      'TWO VOLUME NUMBERS (E.G. 2,8)'
     ),
     100,
     'amber',
     [
       {
         id: 'bookshelf_unit',
-        name: 'The Mastermind’s Bookshelf',
-        description: 'A heavy mahogany bookcase holding rare first-edition syndicate volumes.',
-        clue: 'An engraved brass label reads: "The syndicate password is found by reading the first letters of Volumes I through VI in order."',
+        name: 'The Ancient Library Shelves',
+        description: 'Ten numbered volumes describe security protocols for common social-engineering situations.',
+        clue: 'Choose the two volumes that recommend verifying requests independently and reporting suspicious messages without sharing verification codes.',
         iconName: 'Library',
         interactionType: 'bookshelf',
         extraData: {
           books: [
-            { vol: 'I', title: 'Chronology of Heists', letter: 'C', color: 'bg-red-900 border-red-700' },
-            { vol: 'II', title: 'Invisible Infiltration', letter: 'I', color: 'bg-blue-900 border-blue-700' },
-            { vol: 'III', title: 'Protocols of Deception', letter: 'P', color: 'bg-purple-900 border-purple-700' },
-            { vol: 'IV', title: 'Hidden Fortresses', letter: 'H', color: 'bg-emerald-900 border-emerald-700' },
-            { vol: 'V', title: 'Escape Velocity', letter: 'E', color: 'bg-amber-900 border-amber-700' },
-            { vol: 'VI', title: 'Rogue Operatives', letter: 'R', color: 'bg-slate-800 border-slate-600' },
+            { vol: '1', title: 'The Urgent Messenger', protocol: 'Act immediately when a message creates pressure; there is no time to verify.', safe: false, color: 'bg-red-950 border-red-800' },
+            { vol: '2', title: 'The Trusted Directory', protocol: 'Verify a request using a known, independent phone number or directory entry.', safe: true, color: 'bg-emerald-950 border-emerald-700' },
+            { vol: '3', title: 'The Familiar Name', protocol: 'A familiar display name is enough proof that a message is genuine.', safe: false, color: 'bg-blue-950 border-blue-800' },
+            { vol: '4', title: 'The Shared Secret', protocol: 'Read a one-time code aloud if a caller says they need it to secure your account.', safe: false, color: 'bg-purple-950 border-purple-800' },
+            { vol: '5', title: 'The Unchecked Attachment', protocol: 'Open unexpected attachments quickly so important work is not delayed.', safe: false, color: 'bg-amber-950 border-amber-800' },
+            { vol: '6', title: 'The Quiet Exception', protocol: 'Keep unusual requests secret when the requester claims to be a senior executive.', safe: false, color: 'bg-slate-900 border-slate-700' },
+            { vol: '7', title: 'The Helpful Password', protocol: 'Share your password with a colleague who offers to fix a login problem.', safe: false, color: 'bg-orange-950 border-orange-800' },
+            { vol: '8', title: 'The Reported Message', protocol: 'Never share verification codes; report suspicious messages through the approved channel.', safe: true, color: 'bg-teal-950 border-teal-700' },
+            { vol: '9', title: 'The Payment Shortcut', protocol: 'Skip the normal approval process if a payment request sounds urgent.', safe: false, color: 'bg-rose-950 border-rose-800' },
+            { vol: '10', title: 'The Convenient Link', protocol: 'Use a link in an unexpected message to sign in and check whether it is legitimate.', safe: false, color: 'bg-indigo-950 border-indigo-800' },
           ],
         },
       },
@@ -269,7 +256,7 @@ export function createHeistRooms(): Room[] {
         id: 'library_desk',
         name: 'Reading Bureau Desk',
         description: 'An antique roll-top desk with a green banker’s lamp.',
-        clue: 'A handwritten librarian slip reads: "Password length: 6 uppercase letters. Formed by pulling the numbered volumes in sequence."',
+        clue: 'A librarian slip reads: "Ten volumes. Select the two protocols that keep account access safe and requests independently verified."',
         iconName: 'LampDesk',
         hiddenItem: cipherTool,
         interactionType: 'inspect',
@@ -283,166 +270,132 @@ export function createHeistRooms(): Room[] {
         interactionType: 'inspect',
       },
     ],
-    'BOOKSHELF MECHANISM RETRACTS. SECRET ELEVATOR OPEN.'
+    'TWO VERIFIED SAFEGUARDS SELECTED. ARCHIVE PASSAGE OPEN.'
   );
 
-  // === ROOM 4: THE SAFE ROOM (Notepad Clues) ===
-  // Requirement: "Stage 4 should be the last room, the safe room. It should contain a notepad to the side that has a series of clues which help the player identify the final four digit combination."
-  // Notepad logic problem:
-  // Clue 1: The code has 4 distinct digits ABCD.
-  // Clue 2: The first digit (A) is an odd prime between 2 and 5 (A = 3).
-  // Clue 3: The second digit (B) is double the first digit (B = 2 * 3 = 6).
-  // Clue 4: The third digit (C) is the first digit minus 2 (C = 3 - 2 = 1).
-  // Clue 5: The fourth digit (D) is the sum of Digit A and Digit C (D = 3 + 1 = 4).
-  // Code = 3614
-  const room4Code = '3614';
-
-  const scratchpadTool = new Item(
-    'Tactical Deduction Pad & Stylus',
-    'A handy digital scratchpad for writing down equation notes and test combinations.',
+  // === ROOM 4: THE PADDED CELL (SSH Tunnel) ===
+  const blueShell = new Item(
+    'Blue Shell',
+    'A blue secure-shell token hidden behind a padded wall mat. Use it to establish the SSH tunnel through the simulated firewall.',
     true,
-    'FileEdit',
-    'scratchpad'
+    'Terminal'
   );
 
   const room4 = new Room(
     4,
-    'The Safe Room Antechamber',
-    'The elevator delivers you into the reinforced safe room. Tremendous titanium blast doors loom ahead. On a side table sits an illuminated yellow notepad filled with the chief security engineer’s handwritten combination logic clues.',
-    [scratchpadTool],
+    'The Padded Cell',
+    'A padded room surrounds a wall of animated flame-shaped firewall tiles. The barrier behaves like a network firewall: only a secure SSH tunnel can pass. A blue shell token is hidden behind one of the touchable padded mats.',
+    [blueShell],
     new Puzzle(
-      'ENTER 4-DIGIT COMBINATION FROM NOTEPAD CLUES',
-      room4Code,
-      'Read the notepad on the side table carefully. Follow each clue step by step to deduce A, B, C, and D.',
+      'ESTABLISH THE SECURE SHELL TUNNEL',
+      'SSH',
+      'Find and collect the Blue Shell behind the padded mat, then enter SSH to tunnel through the simulated firewall.',
       [
-        'Clue 2 gives A: An odd prime between 2 and 5 is 3. So A = 3.',
-        'Clue 3 gives B: Double of 3 is 6. Clue 4 gives C: 3 - 2 = 1.',
-        `Clue 5 gives D: 3 + 1 = 4. The combination is ${room4Code}.`,
+        'The flame wall represents a firewall: connections are filtered at the barrier.',
+        'Search the padded mats for the blue shell token.',
+        'Collect the Blue Shell, then enter SSH to represent opening a secure tunnel.',
       ],
-      'combination',
-      '4-DIGIT COMBINATION'
+      'text',
+      'ENTER SSH',
+      blueShell.name
     ),
     90,
-    'amber',
+    'blue',
     [
       {
-        id: 'notepad_table',
-        name: 'Engineer’s Yellow Notepad',
-        description: 'A ruled notepad with neat handwritten pencil notes titled "VAULT LOCK CODE LOGIC".',
-        clue: `[HANDWRITTEN SAFE ROOM NOTES]:\n1. Combination is 4 distinct digits: [ A ][ B ][ C ][ D ]\n2. Digit A is an odd prime number between 2 and 5.\n3. Digit B is exactly double Digit A (B = 2 × A).\n4. Digit C is Digit A minus 2 (C = A - 2).\n5. Digit D is the sum of Digit A and Digit C (D = A + C).`,
-        iconName: 'FileText',
-        interactionType: 'notepad',
-        extraData: {
-          notes: [
-            '• The safe lock combination consists of 4 distinct digits: [ A ][ B ][ C ][ D ]',
-            '• Digit A: An odd prime number strictly between 2 and 5 (hint: 3).',
-            '• Digit B: Twice the first digit (B = 2 × A).',
-            '• Digit C: The first digit minus 2 (C = A - 2).',
-            '• Digit D: The sum of Digit A and Digit C (D = A + C).',
-          ],
-        },
-      },
-      {
-        id: 'safe_dial_console',
-        name: 'Reinforced Safe Door Dial',
-        description: 'A heavy mechanical and electronic dial bolted to the blast door.',
-        clue: 'Enter the 4-digit sequence deduced from the engineer’s notepad into the terminal below.',
-        iconName: 'Lock',
+        id: 'flame_firewall',
+        name: 'Firewall of Flame',
+        description: 'A wall of flame-shaped illuminated tiles seals the exit.',
+        clue: 'SIMULATED FIREWALL: connections are filtered at the barrier. A secure shell tunnel is required to pass.',
+        iconName: 'Flame',
         interactionType: 'inspect',
       },
       {
-        id: 'side_credenza',
-        name: 'Steel Credenza Drawer',
-        description: 'A small steel utility drawer under the notepad desk.',
-        clue: 'Inside you find a Tactical Deduction Pad & Stylus to help you work out the math.',
-        iconName: 'Folder',
-        hiddenItem: scratchpadTool,
+        id: 'padded_mat',
+        name: 'Loose Padded Wall Mat',
+        description: 'One padded wall panel shifts slightly when pressed. Something blue is tucked behind it.',
+        clue: 'Behind the mat is a Blue Shell token. Collect it to enable the secure-shell tunnel challenge.',
+        iconName: 'Shield',
+        hiddenItem: blueShell,
+        interactionType: 'inspect',
+      },
+      {
+        id: 'tunnel_console',
+        name: 'SSH Tunnel Console',
+        description: 'A compact terminal mounted beside the firewall.',
+        clue: 'Enter SSH after collecting the Blue Shell to open a secure tunnel through the simulated barrier.',
+        iconName: 'Terminal',
         interactionType: 'inspect',
       },
     ],
-    'PNEUMATIC BLAST BOLTS DISENGAGED. MAIN VAULT DOOR SWINGS OPEN!'
+    'SECURE SHELL TUNNEL ESTABLISHED. PADDED CELL EXIT OPEN.'
   );
 
-  // === ROOM 5: THE INNER VAULT (Treasure Chamber) ===
-  // Room 5 is the final room: The Inner Vault Chamber containing the desired "treasure"
-  // Requirement:
-  // "There are 5 rooms for the player to get through in order to reach the desired 'treasure'."
-  // "victory screen after opening the vault"
-  // The final lock securing the Crown Diamond pedestal:
-  // Riddle on the vault lock pedestal:
-  // "I have no voice, but I can tell you secrets. I have no spine, but I hold thousands of pages.
-  // When turned backwards, I seal what is inside. What 4-digit emergency override opens the vault?"
-  // Or: "The Syndicate Master Key: Count the corners of the vault vault door:
-  // Tumbler 1: Total rooms breached to reach the vault (4)
-  // Tumbler 2: Number of digits in each room's passcode (4)
-  // Tumbler 3: Number of corners on the diamond's display pedestal (8)
-  // Tumbler 4: Number of laser emitters guarding the jewel (8)
-  // Code: 4488!
-  const room5Code = '4488';
-
-  const stethoscope = new Item(
-    'Acoustic Lockpick Stethoscope',
-    'A precision acoustic listening device used by master safe crackers to hear mechanical tumbler clicks.',
-    true,
-    'Headphones',
-    'stethoscope'
-  );
+  // === ROOM 5: THE CENTRAL VAULT SANCTUARY ===
+  const room5Code = 'VERIFY,PAUSE,REPORT,CONFIRM';
 
   const room5 = new Room(
     5,
     'The Central Vault Sanctuary',
-    'The heavy blast door hisses open. Steam vents into the refrigerated chamber. At the center of the reinforced steel room, bathed in warm spotlights atop a floating titanium pedestal, rests the legendary 100-carat "Heart of the Syndicate" Diamond. One final rotary tumbler lock seals the diamond showcase.',
-    [stethoscope],
+    'The central vault is a refrigerated sanctuary of steel and glass. A 100-carat red diamond gleams beneath a display case. Before the final seal opens, complete four awareness drills: recognize impersonation, distraction, phishing, and payment fraud, then choose safe responses.',
+    [],
     new Puzzle(
-      'CRACK THE FINAL VAULT ROTARY TUMBLER',
+      'COMPLETE ALL FOUR SOCIAL-ENGINEERING AWARENESS DRILLS',
       room5Code,
-      'Inspect the diamond pedestal lock mechanism. Read the four tumbler calibration riddles.',
+      'Inspect all four scenario cards. Match each tactic with its safe response and submit the four response words in drill order, separated by commas.',
       [
-        'Tumbler 1 is the number of rooms you successfully breached to reach here: 4.',
-        'Tumbler 2 is the standard code length used in the security offices: 4.',
-        `Tumbler 3 and 4 are the octagonal pedestal facet counts: 8 and 8. Master code is ${room5Code}.`,
+        'Pause when someone claims authority or tries to rush you; independently verify the request.',
+        'Do not open unexpected links or attachments. Report suspicious messages through the approved channel.',
+        'In drill order, the safe responses are VERIFY, PAUSE, REPORT, CONFIRM.',
       ],
-      'code',
-      '4-DIGIT MASTER CODE'
+      'text',
+      'VERIFY, PAUSE, REPORT, CONFIRM'
     ),
     90,
     'rose',
     [
       {
         id: 'diamond_pedestal',
-        name: 'The Crown Diamond Pedestal',
-        description: 'A reinforced bulletproof glass dome shielding the radiant 100-carat blue diamond.',
-        clue: `[FINAL VAULT ROTARY LOCK SPECS]:\n• Tumbler 1: The count of rooms you bypassed to reach this sanctuary (4)\n• Tumbler 2: The number of digits required in the security checkpoint (4)\n• Tumbler 3: The number of facets on an octagon pedestal (8)\n• Tumbler 4: The number of laser nodes surrounding the diamond case (8)\n\nEnter the 4 tumblers to unlock the showcase!`,
+        name: '100-Carat Red Diamond',
+        description: 'A brilliant red diamond rests behind the vault glass.',
+        clue: 'The display case remains sealed until all four awareness drills are complete.',
         iconName: 'Diamond',
-        interactionType: 'vault-tumbler',
-        extraData: {
-          tumblers: [
-            { label: 'Breached Rooms', val: '4' },
-            { label: 'Security Digits', val: '4' },
-            { label: 'Pedestal Facets', val: '8' },
-            { label: 'Perimeter Lasers', val: '8' },
-          ],
-        },
-      },
-      {
-        id: 'vault_mechanism',
-        name: 'Tumbler Gear Housing',
-        description: 'Exposed brass and chrome gears ticking smoothly behind a transparent pane.',
-        clue: 'A stethoscope can be used to listen to the lock tumblers as they fall into position.',
-        iconName: 'Cog',
         interactionType: 'inspect',
       },
       {
-        id: 'equipment_case',
-        name: 'Master Safecracker Case',
-        description: 'An open pelican case on the floor left by an earlier syndicate scout.',
-        clue: 'Inside is an Acoustic Lockpick Stethoscope.',
-        iconName: 'Briefcase',
-        hiddenItem: stethoscope,
+        id: 'impersonation_drill',
+        name: 'Drill 1: Impersonation',
+        description: 'A caller claims to be a colleague and asks for account access.',
+        clue: 'TACTIC: Impersonation. SAFE RESPONSE: Verify identity through a known, independent channel; never disclose credentials or codes.',
+        iconName: 'UserRound',
+        interactionType: 'inspect',
+      },
+      {
+        id: 'distraction_drill',
+        name: 'Drill 2: Distraction',
+        description: 'A commotion draws attention away while an unusual request is made.',
+        clue: 'TACTIC: Distraction. SAFE RESPONSE: Pause, keep control of sensitive items and accounts, and verify the request before acting.',
+        iconName: 'Siren',
+        interactionType: 'inspect',
+      },
+      {
+        id: 'phishing_drill',
+        name: 'Drill 3: Phishing',
+        description: 'An unexpected message urges you to follow a link and sign in.',
+        clue: 'TACTIC: Phishing. SAFE RESPONSE: Do not use the message link; navigate using a trusted bookmark and report the message.',
+        iconName: 'MailWarning',
+        interactionType: 'inspect',
+      },
+      {
+        id: 'payment_fraud_drill',
+        name: 'Drill 4: Payment Fraud',
+        description: 'A payment change arrives with pressure to bypass normal approval.',
+        clue: 'TACTIC: Payment Fraud. SAFE RESPONSE: Stop the transfer and confirm any change using the established approval process and a known contact.',
+        iconName: 'BadgeDollarSign',
         interactionType: 'inspect',
       },
     ],
-    'VAULT CYLINDER UNLOCKED! THE DIAMOND IS YOURS!'
+    'ALL FOUR AWARENESS DRILLS PASSED. THE RED DIAMOND IS SECURED!'
   );
 
   return [room1, room2, room3, room4, room5];

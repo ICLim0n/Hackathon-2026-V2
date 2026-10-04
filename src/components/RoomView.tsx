@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Room, InteractiveObject } from '../game/Room';
 import { Item } from '../game/Item';
 import {
@@ -18,6 +18,7 @@ import {
   HelpCircle,
   Layers,
   Sparkles,
+  Flame,
 } from 'lucide-react';
 import { sound } from '../game/audio';
 
@@ -25,15 +26,23 @@ interface RoomViewProps {
   room: Room;
   onCollectItem: (item: Item) => void;
   hasItemInInventory: (itemName: string) => boolean;
+  onSubmitAnswer: (answer: string) => void;
 }
 
 export const RoomView: React.FC<RoomViewProps> = ({
   room,
   onCollectItem,
   hasItemInInventory,
+  onSubmitAnswer,
 }) => {
   const [selectedObject, setSelectedObject] = useState<InteractiveObject | null>(null);
   const [activeBookIndex, setActiveBookIndex] = useState<number | null>(null);
+  const [selectedBookNumbers, setSelectedBookNumbers] = useState<string[]>([]);
+
+  useEffect(() => {
+    setSelectedBookNumbers([]);
+    setActiveBookIndex(null);
+  }, [room.id]);
 
   // Handle object selection
   const handleObjectClick = (obj: InteractiveObject) => {
@@ -45,6 +54,27 @@ export const RoomView: React.FC<RoomViewProps> = ({
   // Handle item pickup from object inspection
   const handlePickup = (item: Item) => {
     onCollectItem(item);
+  };
+
+  const sceneButton = (id: string, title: string, detail: string, className = '') => {
+    const object = room.interactiveObjects.find((candidate) => candidate.id === id);
+    if (!object) return null;
+
+    return (
+      <button
+        key={id}
+        onClick={() => handleObjectClick(object)}
+        className={`rounded border border-white/20 bg-slate-950/85 px-3 py-2 text-left text-white shadow-lg transition hover:border-cyan-300 hover:bg-slate-900 ${className}`}
+        aria-label={`Inspect ${title}`}
+      >
+        <span className="flex items-center justify-between gap-2 text-[10px] font-mono font-bold uppercase tracking-widest text-cyan-300">
+          {title}
+          {id === 'flame_firewall' && <Flame className="h-4 w-4 text-orange-400" aria-hidden="true" />}
+          {id === 'diamond_pedestal' && <Diamond className="h-5 w-5 text-red-400" aria-hidden="true" />}
+        </span>
+        <span className="block text-xs text-slate-300">{detail}</span>
+      </button>
+    );
   };
 
   return (
@@ -121,10 +151,10 @@ export const RoomView: React.FC<RoomViewProps> = ({
               <BookOpen className="w-8 h-8 text-amber-400 shrink-0" />
               <div>
                 <span className="text-xs font-mono font-bold text-amber-300 block">
-                  SYNDICATE ARCHIVE BOOKCASE
+                  ANCIENT LIBRARY: SECURITY PROTOCOLS
                 </span>
                 <span className="text-xs text-amber-200/80">
-                  6 numbered collector books rest on the mahogany shelf. Click each book to reveal its title and spine letter.
+                  Ten books contain advice about social-engineering attempts. Inspect each one, then choose the two sound safeguards.
                 </span>
               </div>
             </div>
@@ -141,26 +171,26 @@ export const RoomView: React.FC<RoomViewProps> = ({
         )}
 
         {room.id === 4 && (
-          <div className="mt-4 p-3 bg-yellow-950/40 border border-yellow-700/60 rounded-md flex items-center justify-between gap-4">
+          <div className="mt-4 p-3 bg-blue-950/40 border border-blue-700/60 rounded-md flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <FileText className="w-8 h-8 text-yellow-400 shrink-0" />
+              <Lock className="w-8 h-8 text-blue-400 shrink-0" />
               <div>
-                <span className="text-xs font-mono font-bold text-yellow-300 block">
-                  ENGINEER'S HANDWRITTEN NOTEPAD
+                <span className="text-xs font-mono font-bold text-blue-300 block">
+                  PADDED CELL // FIREWALL BARRIER
                 </span>
-                <span className="text-xs text-yellow-200/80">
-                  A ruled legal pad beside the safe dial lists five deduction rules for the 4-digit code.
+                <span className="text-xs text-blue-200/80">
+                  Find the Blue Shell behind a padded mat and use SSH to open a secure tunnel.
                 </span>
               </div>
             </div>
             <button
               onClick={() => {
-                const pad = room.interactiveObjects.find((o) => o.id === 'notepad_table');
-                if (pad) handleObjectClick(pad);
+                const mat = room.interactiveObjects.find((o) => o.id === 'padded_mat');
+                if (mat) handleObjectClick(mat);
               }}
-              className="px-3 py-1.5 bg-yellow-700/80 hover:bg-yellow-600 text-yellow-950 font-bold rounded text-xs font-mono whitespace-nowrap transition"
+              className="px-3 py-1.5 bg-blue-700/80 hover:bg-blue-600 text-white font-bold rounded text-xs font-mono whitespace-nowrap transition"
             >
-              OPEN NOTEPAD
+              SEARCH MAT
             </button>
           </div>
         )}
@@ -174,7 +204,7 @@ export const RoomView: React.FC<RoomViewProps> = ({
                   THE CROWN VAULT: "SOLSTICE DIAMOND"
                 </span>
                 <span className="text-xs text-rose-200/80">
-                  Protected by 4 rotary cylinder tumblers. Align the sequence to claim the heist prize!
+                  Complete four safety drills to open the showcase and claim the red diamond.
                 </span>
               </div>
             </div>
@@ -190,6 +220,116 @@ export const RoomView: React.FC<RoomViewProps> = ({
           </div>
         )}
       </div>
+
+      <section
+        aria-label={`${room.name} illustrated scene`}
+        className={`relative isolate overflow-hidden rounded-lg border shadow-inner ${
+          room.id === 2
+            ? 'border-purple-800 bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950'
+            : room.id === 3
+              ? 'border-amber-900 bg-gradient-to-br from-stone-950 via-amber-950 to-slate-950'
+              : room.id === 4
+                ? 'border-blue-800 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900'
+                : room.id === 5
+                  ? 'border-rose-900 bg-gradient-to-br from-rose-950 via-slate-950 to-red-950'
+                  : 'border-emerald-900 bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900'
+        }`}
+      >
+        <div className="absolute inset-0 opacity-30" aria-hidden="true">
+          <div className="h-full w-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
+        </div>
+        <div className="relative p-4 md:p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-slate-300">Scene // Chamber {room.id}</span>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-cyan-300">Touch objects to inspect</span>
+          </div>
+
+          {room.id === 1 && (
+            <div className="grid min-h-44 grid-cols-2 gap-2 sm:grid-cols-5">
+              {sceneButton('desk_note', 'Desk note', 'OTP digit 01', 'bg-yellow-950/90')}
+              {sceneButton('guard_badge', 'Guard badge', 'OTP digit 02', 'bg-slate-900/90')}
+              {sceneButton('whiteboard', 'Shift board', 'OTP digit 03', 'bg-slate-800/90')}
+              {sceneButton('server_terminal', 'Server rack', 'OTP digit 04', 'bg-emerald-950/90')}
+              {sceneButton('locker', 'Locker 104', 'Optional UV torch', 'bg-slate-900/90')}
+              <div className="col-span-2 flex items-center justify-center rounded border border-emerald-900/70 bg-black/40 font-mono text-xs text-emerald-300 sm:col-span-5">
+                SECURITY OFFICE // OTP: _ _ _ _ // MFA GATE LOCKED
+              </div>
+            </div>
+          )}
+
+          {room.id === 2 && (
+            <div className="relative flex min-h-48 items-center justify-center overflow-hidden rounded border border-purple-300/20 bg-slate-950/60 p-5">
+              <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-evenly opacity-80" aria-hidden="true">
+                {[
+                  ['CRIMSON', '0101', 'from-rose-500/30'],
+                  ['GOLD', '1001', 'from-amber-400/30'],
+                  ['COBALT', '0010', 'from-blue-500/30'],
+                  ['SILVER', '0111', 'from-slate-200/25'],
+                ].map(([label, bits, color]) => (
+                  <div key={label} className={`flex h-32 w-[19%] flex-col items-center justify-center rounded bg-gradient-to-b ${color} to-transparent font-mono`}>
+                    <span className="text-[9px] tracking-widest text-white/70">{label}</span>
+                    <span className="mt-2 text-xs font-bold tracking-[0.2em] text-white">{bits}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="laser-sweep absolute left-0 right-0 top-1/2 z-10 h-0.5 bg-red-400 shadow-[0_0_12px_4px_rgba(248,113,113,0.8)]" aria-hidden="true" />
+              {sceneButton('large_painting', 'The Binary Dawn', 'Inspect the four bands', 'relative z-20 border-purple-300/50 bg-purple-950/90 text-center')}
+            </div>
+          )}
+
+          {room.id === 3 && (
+            <div className="min-h-48 rounded border border-amber-900/70 bg-stone-950/70 p-3">
+              <div className="space-y-3 rounded bg-amber-950/40 p-3">
+                {[0, 1, 2].map((shelf) => (
+                  <div key={shelf} className="flex h-9 items-end gap-1 border-b-4 border-amber-800 px-2">
+                    {Array.from({ length: shelf === 1 ? 4 : 3 }, (_, index) => (
+                      <span
+                        key={index}
+                        className={`${
+                          ['h-6', 'h-7', 'h-8'][((index + shelf) % 3)]
+                        } flex-1 rounded-t border border-amber-200/20 ${
+                          ['bg-emerald-900', 'bg-red-950', 'bg-indigo-950', 'bg-amber-800'][index]
+                        }`}
+                        aria-hidden="true"
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex justify-center">
+                {sceneButton('bookshelf_unit', 'Ten-volume archive', 'Open books and choose two safeguards', 'border-amber-500/50 bg-amber-950/90')}
+              </div>
+            </div>
+          )}
+
+          {room.id === 4 && (
+            <div className="relative grid min-h-48 grid-cols-2 gap-3 overflow-hidden rounded border border-blue-700/50 bg-slate-950/70 p-4 sm:grid-cols-3">
+              <div className="absolute inset-0 grid grid-cols-6 gap-1 p-2 opacity-40" aria-hidden="true">
+                {Array.from({ length: 18 }, (_, index) => (
+                  <span key={index} className="rounded border border-slate-500/50 bg-slate-500/10 shadow-inner" />
+                ))}
+              </div>
+              <div className="fire-flicker relative z-10 col-span-2 flex items-center justify-center rounded border border-orange-500/40 bg-gradient-to-r from-red-950 via-orange-800/50 to-red-950 px-2 text-center font-mono text-sm font-black uppercase tracking-widest text-orange-200 sm:col-span-1">
+                {sceneButton('flame_firewall', 'Firewall of flame', 'Barrier filtering access')}
+              </div>
+              <div className="relative z-10 col-span-2 flex flex-wrap items-center justify-center gap-2 sm:col-span-2">
+                {sceneButton('padded_mat', 'Loose wall mat', 'Search behind it for the Blue Shell', 'border-blue-300/50 bg-blue-950/90')}
+                {sceneButton('tunnel_console', 'Tunnel console', 'SSH through the barrier', 'bg-slate-900/90')}
+              </div>
+            </div>
+          )}
+
+          {room.id === 5 && (
+            <div className="grid min-h-52 grid-cols-2 gap-2 rounded border border-rose-900/70 bg-black/40 p-3 sm:grid-cols-5">
+              {sceneButton('impersonation_drill', '01 // Impersonation', 'Verify identity', 'border-rose-400/30')}
+              {sceneButton('distraction_drill', '02 // Distraction', 'Pause and verify', 'border-rose-400/30')}
+              {sceneButton('phishing_drill', '03 // Phishing', 'Avoid unexpected links', 'border-rose-400/30')}
+              {sceneButton('payment_fraud_drill', '04 // Payment fraud', 'Use normal approvals', 'border-rose-400/30')}
+              {sceneButton('diamond_pedestal', '100-carat red diamond', 'Behind vault glass', 'col-span-2 border-red-400/50 bg-red-950/80 sm:col-span-1')}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Interactive Clickable Objects Grid */}
       <div className="space-y-2">
@@ -313,9 +453,30 @@ export const RoomView: React.FC<RoomViewProps> = ({
                     </div>
 
                     <p className="text-[11px] text-purple-300/80 mt-3 pt-2 border-t border-purple-900/40">
-                      💡 Tip: Convert each 4-bit binary group into its decimal digit (8·4·2·1). For example, 0101 = 4+1 = 5. Enter all 4 digits in order!
+                      Convert each band using place values 8·4·2·1. The four digits, read left to right, form the laser disarm sequence.
                     </p>
                   </div>
+                  {selectedObject.extraData.options && (
+                    <div className="rounded border border-purple-800/70 bg-slate-950 p-3">
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-purple-300">
+                        Select the decoded code // options shuffled each run
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {selectedObject.extraData.options.map((option: string) => (
+                          <button
+                            key={option}
+                            onClick={() => {
+                              onSubmitAnswer(option);
+                              setSelectedObject(null);
+                            }}
+                            className="rounded border border-purple-700/70 bg-purple-950/70 py-2 font-mono text-sm font-bold tracking-[0.25em] text-white transition hover:border-cyan-300 hover:bg-purple-900"
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -324,29 +485,45 @@ export const RoomView: React.FC<RoomViewProps> = ({
                 <div className="space-y-3">
                   <div className="p-3 bg-amber-950/40 border border-amber-800/60 rounded text-amber-200">
                     <p className="text-xs font-sans">
-                      Click each volume on the shelf below. Inspecting a book pulls it forward and reveals its primary cipher letter:
+                      Read the protocol in all ten books. Select exactly two sound safeguards; choosing the second submits both volume numbers.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {selectedObject.extraData.books.map((book: any, idx: number) => {
+                      const bookNumber = String(book.vol);
+                      const isSelected = selectedBookNumbers.includes(bookNumber);
                       const isPulled = activeBookIndex === idx;
                       return (
                         <button
                           key={idx}
                           onClick={() => {
                             sound.playClick();
-                            setActiveBookIndex(isPulled ? null : idx);
+                            setActiveBookIndex(idx);
+                            const nextSelection = isSelected
+                              ? selectedBookNumbers.filter((number) => number !== bookNumber)
+                              : selectedBookNumbers.length < 2
+                                ? [...selectedBookNumbers, bookNumber]
+                                : [selectedBookNumbers[1], bookNumber];
+                            setSelectedBookNumbers(nextSelection);
+                            if (nextSelection.length === 2) {
+                              onSubmitAnswer(
+                                nextSelection
+                                  .sort((first, second) => Number(first) - Number(second))
+                                  .join(',')
+                              );
+                              setSelectedObject(null);
+                            }
                           }}
-                          className={`p-3 rounded-lg border text-left transition-all duration-200 flex flex-col justify-between h-28 ${book.color} ${
-                            isPulled
+                          className={`p-3 rounded-lg border text-left transition-all duration-200 flex flex-col justify-between min-h-36 ${book.color} ${
+                            isPulled || isSelected
                               ? 'ring-2 ring-amber-400 transform -translate-y-1 shadow-lg'
                               : 'hover:brightness-110 opacity-90'
                           }`}
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-[10px] font-bold text-amber-300 font-mono">
-                              VOL {book.vol}
+                              VOL {book.vol}{isSelected ? ' // SELECTED' : ''}
                             </span>
                             <BookOpen className="w-3.5 h-3.5 text-amber-300" />
                           </div>
@@ -354,12 +531,7 @@ export const RoomView: React.FC<RoomViewProps> = ({
                             <span className="text-xs font-bold text-white block line-clamp-1">
                               {book.title}
                             </span>
-                            <div className="mt-1 flex items-center justify-between text-[11px]">
-                              <span className="text-slate-300">Letter:</span>
-                              <span className="px-1.5 py-0.5 rounded bg-black/60 font-bold text-amber-300 text-sm">
-                                {book.letter}
-                              </span>
-                            </div>
+                            <p className="mt-2 text-[10px] leading-relaxed text-slate-200">{book.protocol}</p>
                           </div>
                         </button>
                       );
@@ -367,8 +539,8 @@ export const RoomView: React.FC<RoomViewProps> = ({
                   </div>
 
                   <div className="p-2 bg-slate-950 rounded border border-amber-900/50 text-[11px] text-slate-300">
-                    <span className="text-amber-400 font-bold">PASSPHRASE SEQUENCE: </span>
-                    Combine the extracted letters from Vol I through Vol VI in numerical order to solve the keypad password!
+                    <span className="text-amber-400 font-bold">SELECTED VOLUMES ({selectedBookNumbers.length}/2): </span>
+                    Choose the two advice books that recommend independent identity verification and reporting suspicious messages without sharing verification codes.
                   </div>
                 </div>
               )}

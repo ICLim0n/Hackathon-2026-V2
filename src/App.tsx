@@ -116,6 +116,7 @@ export default function App() {
             room={currentRoom}
             onCollectItem={handleCollectItem}
             hasItemInInventory={(name) => game.inventory.hasItem(name)}
+            onSubmitAnswer={handleSubmitAnswer}
           />
 
           {/* Electronic Security Input Keypad & Challenge */}

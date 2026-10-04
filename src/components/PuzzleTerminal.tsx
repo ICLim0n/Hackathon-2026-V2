@@ -158,39 +158,41 @@ export const PuzzleTerminal: React.FC<PuzzleTerminalProps> = ({
             </div>
 
             {/* Numeric Keypad for convenience on touch or fast entry */}
-            <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
-              {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
+            {puzzle.type !== 'text' && (
+              <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
+                  <button
+                    key={digit}
+                    type="button"
+                    onClick={() => handleKeypadPress(digit)}
+                    className="py-2.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500 text-slate-200 hover:text-cyan-300 text-lg font-bold transition active:bg-cyan-900/50"
+                  >
+                    {digit}
+                  </button>
+                ))}
                 <button
-                  key={digit}
                   type="button"
-                  onClick={() => handleKeypadPress(digit)}
+                  onClick={handleClear}
+                  className="py-2 rounded bg-slate-900 hover:bg-red-950/60 border border-slate-800 text-red-400 text-xs font-bold transition"
+                >
+                  CLR
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleKeypadPress('0')}
                   className="py-2.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500 text-slate-200 hover:text-cyan-300 text-lg font-bold transition active:bg-cyan-900/50"
                 >
-                  {digit}
+                  0
                 </button>
-              ))}
-              <button
-                type="button"
-                onClick={handleClear}
-                className="py-2 rounded bg-slate-900 hover:bg-red-950/60 border border-slate-800 text-red-400 text-xs font-bold transition"
-              >
-                CLR
-              </button>
-              <button
-                type="button"
-                onClick={() => handleKeypadPress('0')}
-                className="py-2.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500 text-slate-200 hover:text-cyan-300 text-lg font-bold transition active:bg-cyan-900/50"
-              >
-                0
-              </button>
-              <button
-                type="button"
-                onClick={handleBackspace}
-                className="py-2 rounded bg-slate-900 hover:bg-amber-950/60 border border-slate-800 text-amber-400 text-xs font-bold flex items-center justify-center transition"
-              >
-                <Delete className="w-4 h-4" />
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={handleBackspace}
+                  className="py-2 rounded bg-slate-900 hover:bg-amber-950/60 border border-slate-800 text-amber-400 text-xs font-bold flex items-center justify-center transition"
+                >
+                  <Delete className="w-4 h-4" />
+                </button>
+              </div>
+            )}
 
             {/* Submit and Action Buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
@@ -199,7 +201,7 @@ export const PuzzleTerminal: React.FC<PuzzleTerminalProps> = ({
                 className="py-3 px-4 rounded bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs md:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md shadow-cyan-950/50 cursor-pointer"
               >
                 <KeyRound className="w-4 h-4" />
-                TRANSMIT PASSCODE
+                SUBMIT RESPONSE
               </button>
 
               <button

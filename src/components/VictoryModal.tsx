@@ -56,7 +56,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({ game, onPlayAgain })
         </h2>
 
         <p className="text-slate-300 text-sm mb-5 leading-relaxed font-sans">
-          You breached all 5 security perimeters, decrypted the binary masterpiece, solved the library cipher, calculated the safe logic, and unlocked the Central Vault Sanctuary. The 100-carat Solstice Diamond is securely in your hands!
+          You passed all five chambers, decoded the gallery laser bands, selected two sound library safeguards, established a secure-shell tunnel, and completed all four social-engineering awareness drills. The 100-carat red diamond is yours!
         </p>
 
         {/* Infiltration Stats Grid */}

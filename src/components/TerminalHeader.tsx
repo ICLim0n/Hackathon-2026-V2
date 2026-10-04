@@ -54,7 +54,7 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
               </span>
             </div>
             <h1 className="text-lg md:text-xl font-bold font-mono tracking-tight text-slate-100 flex items-center gap-2">
-              OPERATION: VAULT CIPHER
+              OPERATION: RED DIAMOND
             </h1>
           </div>
         </div>
