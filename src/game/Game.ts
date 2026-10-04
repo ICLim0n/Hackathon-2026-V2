@@ -6,6 +6,8 @@ import { sound } from './audio';
 
 export type GameListener = () => void;
 
+const ROOM_TIME_LIMIT = 5 * 60;
+
 /**
  * Game Class
  * Master controller for the Heist Escape Room game.
@@ -20,6 +22,7 @@ export class Game {
   isGameOver: boolean;
   isVictory: boolean;
   isPaused: boolean;
+  isTimerEnabled: boolean;
   hintsUsed: number;
   totalTimeElapsed: number;
   private listeners: GameListener[] = [];
@@ -29,10 +32,11 @@ export class Game {
     this.rooms = createHeistRooms();
     this.currentRoomIndex = 0;
     this.inventory = new Inventory();
-    this.timeRemaining = this.rooms[0]?.timeLimit || 90;
+    this.timeRemaining = ROOM_TIME_LIMIT;
     this.isGameOver = false;
     this.isVictory = false;
     this.isPaused = false;
+    this.isTimerEnabled = false;
     this.hintsUsed = 0;
     this.totalTimeElapsed = 0;
 
@@ -91,7 +95,7 @@ export class Game {
       if (this.isPaused || this.isGameOver || this.isVictory) return;
 
       this.totalTimeElapsed++;
-      if (this.timeRemaining > 0) {
+      if (this.isTimerEnabled && this.timeRemaining > 0) {
         this.timeRemaining--;
 
         // Warning sound when 10 seconds or less remain
@@ -105,6 +109,18 @@ export class Game {
       }
       this.notify();
     }, 1000);
+  }
+
+  /**
+   * Enables or disables the optional five-minute-per-room countdown.
+   */
+  toggleTimer(): boolean {
+    this.isTimerEnabled = !this.isTimerEnabled;
+    if (this.isTimerEnabled) {
+      this.timeRemaining = ROOM_TIME_LIMIT;
+    }
+    this.notify();
+    return this.isTimerEnabled;
   }
 
   /**
@@ -201,7 +217,7 @@ export class Game {
     if (this.currentRoomIndex < this.rooms.length - 1) {
       this.currentRoomIndex++;
       const nextRoom = this.getCurrentRoom();
-      this.timeRemaining = nextRoom.timeLimit;
+      this.timeRemaining = ROOM_TIME_LIMIT;
       sound.playClick();
       this.notify();
       return true;
@@ -241,7 +257,7 @@ export class Game {
   restartCurrentRoom(): void {
     const currentRoom = this.getCurrentRoom();
     currentRoom.reset();
-    this.timeRemaining = currentRoom.timeLimit;
+    this.timeRemaining = ROOM_TIME_LIMIT;
     this.isGameOver = false;
     sound.playClick();
     this.notify();
@@ -255,7 +271,7 @@ export class Game {
     this.rooms = createHeistRooms();
     this.currentRoomIndex = 0;
     this.inventory.clear();
-    this.timeRemaining = this.rooms[0].timeLimit;
+    this.timeRemaining = ROOM_TIME_LIMIT;
     this.isGameOver = false;
     this.isVictory = false;
     this.isPaused = false;

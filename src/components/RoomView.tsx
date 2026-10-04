@@ -38,16 +38,21 @@ export const RoomView: React.FC<RoomViewProps> = ({
   const [selectedObject, setSelectedObject] = useState<InteractiveObject | null>(null);
   const [activeBookIndex, setActiveBookIndex] = useState<number | null>(null);
   const [selectedBookNumbers, setSelectedBookNumbers] = useState<string[]>([]);
+  const [drillAnswers, setDrillAnswers] = useState<Record<string, string>>({});
+  const [drillFeedback, setDrillFeedback] = useState<{ message: string; isCorrect: boolean } | null>(null);
 
   useEffect(() => {
     setSelectedBookNumbers([]);
     setActiveBookIndex(null);
-  }, [room.id]);
+    setDrillAnswers({});
+    setDrillFeedback(null);
+  }, [room.id, room.puzzle.isSolved, room.resetCount]);
 
   // Handle object selection
   const handleObjectClick = (obj: InteractiveObject) => {
     sound.playClick();
     obj.hasBeenInteracted = true;
+    setDrillFeedback(null);
     setSelectedObject(obj);
   };
 
@@ -171,15 +176,15 @@ export const RoomView: React.FC<RoomViewProps> = ({
         )}
 
         {room.id === 4 && (
-          <div className="mt-4 p-3 bg-blue-950/40 border border-blue-700/60 rounded-md flex items-center justify-between gap-4">
+          <div className="mt-4 p-3 bg-blue-950/40 border border-blue-700/60 rounded-md flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Lock className="w-8 h-8 text-blue-400 shrink-0" />
               <div>
                 <span className="text-xs font-mono font-bold text-blue-300 block">
-                  PADDED CELL // FIREWALL BARRIER
+                  PADDED CELL // SSH CODE REQUIRED
                 </span>
                 <span className="text-xs text-blue-200/80">
-                  Find the Blue Shell behind a padded mat and use SSH to open a secure tunnel.
+                  Search beneath the padded mats and inspect your collected clues. The Blue Shell Tool Assistant contains the secure tunnel reference.
                 </span>
               </div>
             </div>
@@ -201,7 +206,7 @@ export const RoomView: React.FC<RoomViewProps> = ({
               <Diamond className="w-8 h-8 text-cyan-300 animate-pulse shrink-0" />
               <div>
                 <span className="text-xs font-mono font-bold text-rose-300 block">
-                  THE CROWN VAULT: "SOLSTICE DIAMOND"
+                  THE RED DIAMOND // FOUR AWARENESS DRILLS
                 </span>
                 <span className="text-xs text-rose-200/80">
                   Complete four safety drills to open the showcase and claim the red diamond.
@@ -313,18 +318,20 @@ export const RoomView: React.FC<RoomViewProps> = ({
                 {sceneButton('flame_firewall', 'Firewall of flame', 'Barrier filtering access')}
               </div>
               <div className="relative z-10 col-span-2 flex flex-wrap items-center justify-center gap-2 sm:col-span-2">
-                {sceneButton('padded_mat', 'Loose wall mat', 'Search behind it for the Blue Shell', 'border-blue-300/50 bg-blue-950/90')}
-                {sceneButton('tunnel_console', 'Tunnel console', 'SSH through the barrier', 'bg-slate-900/90')}
+                {sceneButton('padded_mat', 'Padded wall mat', 'Search beneath the mat', 'border-blue-300/50 bg-blue-950/90')}
+                {sceneButton('padded_mat_key', 'Padded wall mat', 'A loose corner hides an object', 'border-amber-700/50 bg-amber-950/90')}
+                {sceneButton('padded_mat_book', 'Padded wall mat', 'A scorched seam hides an object', 'border-orange-700/50 bg-orange-950/90')}
+                {sceneButton('tunnel_console', 'Firewall console', 'Submit the SSH code', 'bg-slate-900/90')}
               </div>
             </div>
           )}
 
           {room.id === 5 && (
             <div className="grid min-h-52 grid-cols-2 gap-2 rounded border border-rose-900/70 bg-black/40 p-3 sm:grid-cols-5">
-              {sceneButton('impersonation_drill', '01 // Impersonation', 'Verify identity', 'border-rose-400/30')}
-              {sceneButton('distraction_drill', '02 // Distraction', 'Pause and verify', 'border-rose-400/30')}
-              {sceneButton('phishing_drill', '03 // Phishing', 'Avoid unexpected links', 'border-rose-400/30')}
-              {sceneButton('payment_fraud_drill', '04 // Payment fraud', 'Use normal approvals', 'border-rose-400/30')}
+              {sceneButton('impersonation_drill', 'A // Impersonation', 'Choose a safe response', 'border-rose-400/30')}
+              {sceneButton('distraction_drill', 'B // Distraction', 'Choose a safe response', 'border-rose-400/30')}
+              {sceneButton('phishing_drill', 'C // Phishing', 'Choose a safe response', 'border-rose-400/30')}
+              {sceneButton('payment_fraud_drill', 'D // Payment fraud', 'Choose a safe response', 'border-rose-400/30')}
               {sceneButton('diamond_pedestal', '100-carat red diamond', 'Behind vault glass', 'col-span-2 border-red-400/50 bg-red-950/80 sm:col-span-1')}
             </div>
           )}
@@ -416,6 +423,82 @@ export const RoomView: React.FC<RoomViewProps> = ({
             {/* Modal Content */}
             <div className="p-5 overflow-y-auto space-y-4 font-mono text-xs">
               <p className="text-slate-300 text-sm leading-relaxed">{selectedObject.description}</p>
+
+              {selectedObject.interactionType === 'awareness-drill' && selectedObject.extraData?.choices && (
+                <div className="space-y-3 rounded border border-rose-800/70 bg-slate-950 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-rose-300">
+                      Mini problem {selectedObject.name.replace('Drill ', '')}
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-300">
+                      {drillAnswers[selectedObject.id] ? 'ANSWER SAVED' : 'CHOOSE ONE'}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-white">{selectedObject.extraData.question}</p>
+                  <div className="space-y-2">
+                    {selectedObject.extraData.choices.map((choice: { label: string; answer: string; text: string }) => {
+                      const isSelected = drillAnswers[selectedObject.id] === choice.answer;
+                      return (
+                        <button
+                          key={choice.label}
+                          onClick={() => {
+                            sound.playClick();
+                            if (choice.answer !== selectedObject.extraData?.correctAnswer) {
+                              setDrillFeedback({
+                                message: 'Not quite. Review the scenario and choose a safer response.',
+                                isCorrect: false,
+                              });
+                              return;
+                            }
+
+                            const nextAnswers = { ...drillAnswers, [selectedObject.id]: choice.answer };
+                            setDrillAnswers(nextAnswers);
+                            setDrillFeedback({
+                              message: `Correct. ${Object.keys(nextAnswers).length} of 4 drills complete.`,
+                              isCorrect: true,
+                            });
+
+                            const drillOrder = [
+                              'impersonation_drill',
+                              'distraction_drill',
+                              'phishing_drill',
+                              'payment_fraud_drill',
+                            ];
+                            if (drillOrder.every((drillId) => nextAnswers[drillId])) {
+                              onSubmitAnswer(drillOrder.map((drillId) => nextAnswers[drillId]).join(','));
+                              setSelectedObject(null);
+                            }
+                          }}
+                          className={`flex w-full items-start gap-3 rounded border p-3 text-left transition ${
+                            isSelected
+                              ? 'border-emerald-400 bg-emerald-950/70 text-emerald-100'
+                              : 'border-slate-700 bg-slate-900 text-slate-200 hover:border-rose-400 hover:bg-slate-800'
+                          }`}
+                        >
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-current font-bold">{choice.label}</span>
+                          <span className="text-xs leading-relaxed">{choice.text}</span>
+                          {isSelected && <CheckCircle className="ml-auto h-4 w-4 shrink-0 text-emerald-400" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {drillFeedback && (
+                    <p
+                      role="status"
+                      className={`rounded border p-2 text-xs ${
+                        drillFeedback.isCorrect
+                          ? 'border-emerald-800 bg-emerald-950/60 text-emerald-300'
+                          : 'border-amber-800 bg-amber-950/60 text-amber-200'
+                      }`}
+                    >
+                      {drillFeedback.message}
+                    </p>
+                  )}
+                  <p className="text-[10px] text-slate-400">
+                    Complete drills A–D in any order. All four correct responses are required to open the diamond case.
+                  </p>
+                </div>
+              )}
 
               {/* SPECIAL INTERACTION: PAINTING (Room 2) */}
               {selectedObject.interactionType === 'painting' && selectedObject.extraData?.binaryData && (

@@ -44,7 +44,7 @@ export function createHeistRooms(): Room[] {
   const room1 = new Room(
     1,
     'Security Office',
-    'You slip past the outer cameras into the guard command station. Monitors hum with static and glowing status boards. The main security door is locked with a 4-digit biometric terminal. Search the office to piece together the lockout digits.',
+    'You slip past the outer cameras into the guard command station. Monitors hum with static and glowing status boards. The main security door needs a temporary four-digit MFA one-time password. Search the sticky note, guard badge, shift whiteboard, and server rack terminal; read their randomized digits in order.',
     [uvFlashlight],
     new Puzzle(
       'GENERATE THE ONE-TIME PASSWORD (OTP) FROM THE FOUR OFFICE OBJECTS',
@@ -276,27 +276,40 @@ export function createHeistRooms(): Room[] {
   // === ROOM 4: THE PADDED CELL (SSH Tunnel) ===
   const blueShell = new Item(
     'Blue Shell',
-    'A blue secure-shell token hidden behind a padded wall mat. Use it to establish the SSH tunnel through the simulated firewall.',
+    'A blue secure-shell token. Its tool assistant contains a secure tunnel reference.',
     true,
-    'Terminal'
+    'Terminal',
+    'ssh-guide'
+  );
+  const toyKey = new Item(
+    'Plastic Toy Key',
+    'A scribbled note tied to the key reads: "OPEN SESAME".',
+    true,
+    'KeyRound'
+  );
+  const flammableBook = new Item(
+    'Flammable Book',
+    'A note on the scorched cover reads: "THROW THE BOOK".',
+    true,
+    'BookOpen'
   );
 
   const room4 = new Room(
     4,
     'The Padded Cell',
-    'A padded room surrounds a wall of animated flame-shaped firewall tiles. The barrier behaves like a network firewall: only a secure SSH tunnel can pass. A blue shell token is hidden behind one of the touchable padded mats.',
-    [blueShell],
+    'A padded room surrounds a wall of animated flame-shaped firewall tiles. Search beneath the padded wall mats for useful clues, then use what you discover to pass the simulated firewall.',
+    [blueShell, toyKey, flammableBook],
     new Puzzle(
-      'ESTABLISH THE SECURE SHELL TUNNEL',
-      'SSH',
-      'Find and collect the Blue Shell behind the padded mat, then enter SSH to tunnel through the simulated firewall.',
+      'COLLECT THE BLUE SHELL, CONSULT ITS TOOL ASSISTANT, AND ENTER THE SSH CODE',
+      'SSH -N -f -L',
+      'Search beneath the padded mats and inspect the collected items. The Blue Shell Tool Assistant has the secure tunnel reference.',
       [
-        'The flame wall represents a firewall: connections are filtered at the barrier.',
-        'Search the padded mats for the blue shell token.',
-        'Collect the Blue Shell, then enter SSH to represent opening a secure tunnel.',
+        'A firewall filters network connections; a physical key or a book cannot open a network tunnel.',
+        'Collect the items under the padded mats and read their quoted clues in the inventory.',
+        'The Blue Shell Tool Assistant has the tunnel reference. Use it to determine what to submit.',
       ],
       'text',
-      'ENTER SSH',
+      'SSH CODE',
       blueShell.name
     ),
     90,
@@ -306,7 +319,7 @@ export function createHeistRooms(): Room[] {
         id: 'flame_firewall',
         name: 'Firewall of Flame',
         description: 'A wall of flame-shaped illuminated tiles seals the exit.',
-        clue: 'SIMULATED FIREWALL: connections are filtered at the barrier. A secure shell tunnel is required to pass.',
+        clue: 'SIMULATED FIREWALL: inspect the clues on the items found under the padded mats.',
         iconName: 'Flame',
         interactionType: 'inspect',
       },
@@ -314,7 +327,7 @@ export function createHeistRooms(): Room[] {
         id: 'padded_mat',
         name: 'Loose Padded Wall Mat',
         description: 'One padded wall panel shifts slightly when pressed. Something blue is tucked behind it.',
-        clue: 'Behind the mat is a Blue Shell token. Collect it to enable the secure-shell tunnel challenge.',
+        clue: 'Something useful may be hidden beneath this padded mat.',
         iconName: 'Shield',
         hiddenItem: blueShell,
         interactionType: 'inspect',
@@ -323,8 +336,26 @@ export function createHeistRooms(): Room[] {
         id: 'tunnel_console',
         name: 'SSH Tunnel Console',
         description: 'A compact terminal mounted beside the firewall.',
-        clue: 'Enter SSH after collecting the Blue Shell to open a secure tunnel through the simulated barrier.',
+        clue: 'Use the SSH code from the Blue Shell Tool Assistant to pass through the simulated firewall.',
         iconName: 'Terminal',
+        interactionType: 'inspect',
+      },
+      {
+        id: 'padded_mat_key',
+        name: 'Padded Mat: Loose Corner',
+        description: 'A loose corner of this mat hides a small object.',
+        clue: 'You found something tucked beneath the padded mat.',
+        iconName: 'Shield',
+        hiddenItem: toyKey,
+        interactionType: 'inspect',
+      },
+      {
+        id: 'padded_mat_book',
+        name: 'Padded Mat: Scorched Stitching',
+        description: 'A scorched seam marks another padded wall mat.',
+        clue: 'There is a brittle object hidden beneath this mat.',
+        iconName: 'Shield',
+        hiddenItem: flammableBook,
         interactionType: 'inspect',
       },
     ],
@@ -364,35 +395,67 @@ export function createHeistRooms(): Room[] {
       },
       {
         id: 'impersonation_drill',
-        name: 'Drill 1: Impersonation',
-        description: 'A caller claims to be a colleague and asks for account access.',
-        clue: 'TACTIC: Impersonation. SAFE RESPONSE: Verify identity through a known, independent channel; never disclose credentials or codes.',
+        name: 'Drill A: Impersonation',
+        description: 'A caller claims to be from IT and asks you to read them the one-time code that just arrived on your phone.',
         iconName: 'UserRound',
-        interactionType: 'inspect',
+        interactionType: 'awareness-drill',
+        extraData: {
+          question: 'Someone claiming to be IT asks for your one-time login code. What should you do?',
+          correctAnswer: 'VERIFY',
+          choices: [
+            { label: '1', answer: 'VERIFY', text: 'Independently verify the caller; never share the code.' },
+            { label: '2', answer: 'SHARE', text: 'Read the code aloud to prove it is your account.' },
+            { label: '3', answer: 'RUSH', text: 'Follow their instructions quickly so access is restored.' },
+          ],
+        },
       },
       {
         id: 'distraction_drill',
-        name: 'Drill 2: Distraction',
-        description: 'A commotion draws attention away while an unusual request is made.',
-        clue: 'TACTIC: Distraction. SAFE RESPONSE: Pause, keep control of sensitive items and accounts, and verify the request before acting.',
+        name: 'Drill B: Distraction',
+        description: 'A loud commotion breaks out while someone pressures you to approve an unexpected login.',
         iconName: 'Siren',
-        interactionType: 'inspect',
+        interactionType: 'awareness-drill',
+        extraData: {
+          question: 'During a commotion, someone urges you to approve an unexpected login. What should you do?',
+          correctAnswer: 'PAUSE',
+          choices: [
+            { label: '1', answer: 'APPROVE', text: 'Approve it immediately to stop the alerts.' },
+            { label: '2', answer: 'PAUSE', text: 'Pause and verify the login through your normal security process.' },
+            { label: '3', answer: 'IGNORE', text: 'Ignore the alert and leave the request unresolved.' },
+          ],
+        },
       },
       {
         id: 'phishing_drill',
-        name: 'Drill 3: Phishing',
-        description: 'An unexpected message urges you to follow a link and sign in.',
-        clue: 'TACTIC: Phishing. SAFE RESPONSE: Do not use the message link; navigate using a trusted bookmark and report the message.',
+        name: 'Drill C: Phishing',
+        description: 'An unexpected message says your account will close unless you sign in using its link.',
         iconName: 'MailWarning',
-        interactionType: 'inspect',
+        interactionType: 'awareness-drill',
+        extraData: {
+          question: 'An unexpected message threatens account closure and includes a sign-in link. What should you do?',
+          correctAnswer: 'REPORT',
+          choices: [
+            { label: '1', answer: 'CLICK', text: 'Use the message link to check whether the warning is real.' },
+            { label: '2', answer: 'REPLY', text: 'Reply with your username to ask for more information.' },
+            { label: '3', answer: 'REPORT', text: 'Do not click; report the message through the approved channel.' },
+          ],
+        },
       },
       {
         id: 'payment_fraud_drill',
-        name: 'Drill 4: Payment Fraud',
-        description: 'A payment change arrives with pressure to bypass normal approval.',
-        clue: 'TACTIC: Payment Fraud. SAFE RESPONSE: Stop the transfer and confirm any change using the established approval process and a known contact.',
+        name: 'Drill D: Payment Fraud',
+        description: 'A supplier emails new bank details and demands an immediate payment outside the usual workflow.',
         iconName: 'BadgeDollarSign',
-        interactionType: 'inspect',
+        interactionType: 'awareness-drill',
+        extraData: {
+          question: 'A supplier requests an urgent bank-detail change outside the normal payment workflow. What should you do?',
+          correctAnswer: 'CONFIRM',
+          choices: [
+            { label: '1', answer: 'TRANSFER', text: 'Send the payment immediately to avoid a late fee.' },
+            { label: '2', answer: 'CONFIRM', text: 'Confirm through a known contact and follow normal approvals.' },
+            { label: '3', answer: 'BYPASS', text: 'Skip approvals because the request is urgent.' },
+          ],
+        },
       },
     ],
     'ALL FOUR AWARENESS DRILLS PASSED. THE RED DIAMOND IS SECURED!'

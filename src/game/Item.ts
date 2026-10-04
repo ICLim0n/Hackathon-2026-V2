@@ -10,7 +10,7 @@ export class Item {
   canBeCollected: boolean;
   isCollected: boolean;
   iconName: string;
-  toolType?: 'uv-light' | 'binary-decoder' | 'cipher-tool' | 'scratchpad' | 'stethoscope';
+  toolType?: 'uv-light' | 'binary-decoder' | 'cipher-tool' | 'scratchpad' | 'stethoscope' | 'ssh-guide';
   toolData?: Record<string, any>;
 
   constructor(
@@ -18,7 +18,7 @@ export class Item {
     description: string,
     canBeCollected: boolean = true,
     iconName: string = 'Box',
-    toolType?: 'uv-light' | 'binary-decoder' | 'cipher-tool' | 'scratchpad' | 'stethoscope',
+    toolType?: 'uv-light' | 'binary-decoder' | 'cipher-tool' | 'scratchpad' | 'stethoscope' | 'ssh-guide',
     toolData?: Record<string, any>
   ) {
     this.name = name;

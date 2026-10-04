@@ -6,8 +6,8 @@ import {
   RotateCcw,
   Volume2,
   VolumeX,
-  Pause,
-  Play,
+  Timer,
+  TimerOff,
   HelpCircle,
   KeyRound,
   CheckCircle2,
@@ -19,6 +19,7 @@ interface TerminalHeaderProps {
   onRestartRoom: () => void;
   onRestartGame: () => void;
   onToggleSound: () => void;
+  onToggleTimer: () => void;
   isMuted: boolean;
 }
 
@@ -27,6 +28,7 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
   onRestartRoom,
   onRestartGame,
   onToggleSound,
+  onToggleTimer,
   isMuted,
 }) => {
   const currentRoom = game.getCurrentRoom();
@@ -34,7 +36,7 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
   const minutes = Math.floor(time / 60);
   const seconds = time % 60;
   const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  const isTimeCritical = time <= 20;
+  const isTimeCritical = game.isTimerEnabled && time <= 20;
 
   return (
     <header className="bg-slate-950 border-b border-cyan-900/50 shadow-lg text-slate-100 p-3 md:px-6">
@@ -99,21 +101,42 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
 
         {/* Timer & Controls */}
         <div className="flex items-center justify-between md:justify-end gap-3">
-          {/* Countdown Clock */}
+          {/* Optional five-minute countdown */}
           <div
             className={`flex items-center gap-2 px-3 py-1.5 rounded border font-mono font-bold transition-colors ${
               isTimeCritical
                 ? 'bg-red-950/80 border-red-600 text-red-400 animate-bounce'
                 : 'bg-slate-900 border-cyan-800/80 text-cyan-300'
             }`}
-            title="Stage Time Remaining"
+            title={game.isTimerEnabled ? 'Five minutes remaining in this chamber' : 'Optional timer is off'}
+            aria-live="polite"
           >
-            <Clock className={`w-4 h-4 ${isTimeCritical ? 'text-red-400 animate-spin' : 'text-cyan-400'}`} />
-            <span className="text-sm tracking-wider">{formattedTime}</span>
+            {game.isTimerEnabled ? (
+              <Clock className={`w-4 h-4 ${isTimeCritical ? 'text-red-400 animate-spin' : 'text-cyan-400'}`} />
+            ) : (
+              <TimerOff className="w-4 h-4 text-slate-400" />
+            )}
+            <span className="text-sm tracking-wider">
+              {game.isTimerEnabled ? formattedTime : 'TIMER OFF'}
+            </span>
           </div>
 
           {/* Action buttons */}
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={onToggleTimer}
+              className={`flex items-center gap-1.5 rounded border px-2.5 py-1.5 text-xs font-mono transition ${
+                game.isTimerEnabled
+                  ? 'border-amber-700 bg-amber-950/60 text-amber-300 hover:bg-amber-900/70'
+                  : 'border-slate-700 bg-slate-900 text-slate-300 hover:border-cyan-600 hover:text-cyan-300'
+              }`}
+              title={game.isTimerEnabled ? 'Turn off the five-minute chamber timer' : 'Turn on the five-minute chamber timer'}
+              aria-pressed={game.isTimerEnabled}
+            >
+              {game.isTimerEnabled ? <TimerOff className="h-4 w-4" /> : <Timer className="h-4 w-4" />}
+              <span>{game.isTimerEnabled ? 'TIMER ON' : '5 MIN TIMER'}</span>
+            </button>
+
             {/* Audio Toggle */}
             <button
               onClick={onToggleSound}

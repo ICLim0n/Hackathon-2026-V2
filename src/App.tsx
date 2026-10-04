@@ -104,6 +104,7 @@ export default function App() {
         onRestartRoom={handleRestartRoom}
         onRestartGame={handleRestartGame}
         onToggleSound={handleToggleSound}
+        onToggleTimer={() => game.toggleTimer()}
         isMuted={isMuted}
       />
 
@@ -144,8 +145,8 @@ export default function App() {
             </span>
             <ul className="space-y-1.5 text-slate-400 text-[11px] list-disc list-inside">
               <li>Search room objects to gather clues and collectible tools.</li>
-              <li>Tools in inventory assist decryption but are completely optional.</li>
-              <li>Solve the gate puzzle before the countdown timer expires.</li>
+              <li>Helpful tools are optional, but the Blue Shell is required in Chamber 4.</li>
+              <li>The timer is optional: turn on the five-minute chamber countdown whenever you want a timed challenge.</li>
               <li>Crack all 5 security stages to seize the Solstice Diamond!</li>
             </ul>
           </div>

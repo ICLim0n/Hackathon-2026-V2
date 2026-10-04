@@ -10,6 +10,7 @@ import {
   Check,
   Search,
   Sparkles,
+  Terminal,
 } from 'lucide-react';
 import { sound } from '../game/audio';
 
@@ -58,6 +59,7 @@ export const ToolModal: React.FC<ToolModalProps> = ({ item, onClose, currentRoom
               {item.toolType === 'cipher-tool' && <BookOpen className="w-4 h-4" />}
               {item.toolType === 'scratchpad' && <FileEdit className="w-4 h-4" />}
               {item.toolType === 'stethoscope' && <Headphones className="w-4 h-4" />}
+              {item.toolType === 'ssh-guide' && <Terminal className="w-4 h-4" />}
               {!item.toolType && <Sparkles className="w-4 h-4" />}
             </span>
             <h3 className="font-mono font-bold text-sm text-cyan-300 uppercase tracking-wide">
@@ -78,6 +80,23 @@ export const ToolModal: React.FC<ToolModalProps> = ({ item, onClose, currentRoom
         {/* Content Body */}
         <div className="p-5 overflow-y-auto space-y-4 font-mono text-xs">
           <p className="text-slate-300 text-sm leading-relaxed">{item.description}</p>
+
+          {item.toolType === 'ssh-guide' && (
+            <div className="space-y-3 rounded border border-blue-700/70 bg-blue-950/50 p-4">
+              <div className="flex items-center justify-between font-bold text-blue-200">
+                <span className="flex items-center gap-1.5">
+                  <Terminal className="h-4 w-4" /> Secure Shell Tunnel Reference
+                </span>
+                <span className="text-[10px] uppercase tracking-widest text-blue-300">BLUE SHELL</span>
+              </div>
+              <p className="text-xs leading-relaxed text-slate-200">
+                Use this SSH local-forwarding command to establish the tunnel through the simulated firewall:
+              </p>
+              <code className="block rounded border border-blue-500/50 bg-black/60 px-3 py-3 text-center font-mono text-base font-bold tracking-wider text-cyan-300">
+                SSH -N -f -L
+              </code>
+            </div>
+          )}
 
           {/* UV Light Special Interface */}
           {item.toolType === 'uv-light' && (

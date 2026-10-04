@@ -131,34 +131,42 @@ export const PuzzleTerminal: React.FC<PuzzleTerminalProps> = ({
         /* Puzzle Input Area & Keypad */
         <div className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-3">
-            <div>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={inputVal}
-                  onChange={(e) => setInputVal(e.target.value.toUpperCase())}
-                  onKeyDown={handleKeyDown}
-                  placeholder={puzzle.placeholder}
-                  className="w-full bg-slate-900/90 border-2 border-cyan-500/80 focus:border-cyan-400 focus:outline-hidden rounded px-4 py-3 text-center text-xl md:text-2xl font-bold tracking-widest text-cyan-300 placeholder-slate-600 uppercase shadow-inner"
-                  autoFocus
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                  {inputVal && (
-                    <button
-                      type="button"
-                      onClick={handleClear}
-                      className="p-1 text-slate-500 hover:text-slate-300"
-                      title="Clear Input"
-                    >
-                      <Delete className="w-4 h-4" />
-                    </button>
-                  )}
+            {room.id === 5 ? (
+              <div className="rounded border border-rose-800/70 bg-rose-950/30 p-3 text-center">
+                <p className="text-xs text-rose-100">
+                  Open each scenario card in the vault and choose one response for drills A, B, C, and D. Correct choices are recorded; all four are needed to unlock the diamond.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={inputVal}
+                    onChange={(e) => setInputVal(e.target.value.toUpperCase())}
+                    onKeyDown={handleKeyDown}
+                    placeholder={puzzle.placeholder}
+                    className="w-full bg-slate-900/90 border-2 border-cyan-500/80 focus:border-cyan-400 focus:outline-hidden rounded px-4 py-3 text-center text-xl md:text-2xl font-bold tracking-widest text-cyan-300 placeholder-slate-600 uppercase shadow-inner"
+                    autoFocus
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    {inputVal && (
+                      <button
+                        type="button"
+                        onClick={handleClear}
+                        className="p-1 text-slate-500 hover:text-slate-300"
+                        title="Clear Input"
+                      >
+                        <Delete className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Numeric Keypad for convenience on touch or fast entry */}
-            {puzzle.type !== 'text' && (
+            {room.id !== 5 && puzzle.type !== 'text' && (
               <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
                 {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
                   <button
@@ -195,14 +203,16 @@ export const PuzzleTerminal: React.FC<PuzzleTerminalProps> = ({
             )}
 
             {/* Submit and Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-              <button
-                type="submit"
-                className="py-3 px-4 rounded bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs md:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md shadow-cyan-950/50 cursor-pointer"
-              >
-                <KeyRound className="w-4 h-4" />
-                SUBMIT RESPONSE
-              </button>
+            <div className={`grid grid-cols-1 gap-2.5 pt-2 ${room.id === 5 ? '' : 'sm:grid-cols-2'}`}>
+              {room.id !== 5 && (
+                <button
+                  type="submit"
+                  className="py-3 px-4 rounded bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs md:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md shadow-cyan-950/50 cursor-pointer"
+                >
+                  <KeyRound className="w-4 h-4" />
+                  SUBMIT RESPONSE
+                </button>
+              )}
 
               <button
                 type="button"

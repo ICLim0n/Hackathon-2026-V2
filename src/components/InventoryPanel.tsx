@@ -10,6 +10,7 @@ import {
   Headphones,
   KeyRound,
   ShieldCheck,
+  Terminal,
   Search,
   Sparkles,
   ChevronRight,
@@ -43,6 +44,8 @@ export const InventoryPanel: React.FC<InventoryPanelProps> = ({ inventory, curre
         return <KeyRound className="w-5 h-5 text-yellow-400" />;
       case 'ShieldCheck':
         return <ShieldCheck className="w-5 h-5 text-blue-400" />;
+      case 'Terminal':
+        return <Terminal className="w-5 h-5 text-cyan-400" />;
       default:
         return <Sparkles className="w-5 h-5 text-cyan-400" />;
     }

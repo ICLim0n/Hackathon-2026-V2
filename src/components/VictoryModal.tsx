@@ -36,19 +36,19 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({ game, onPlayAgain })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-slate-900 border-2 border-cyan-500 rounded-xl shadow-2xl max-w-lg w-full p-6 text-slate-100 text-center relative overflow-hidden">
+      <div className="bg-slate-900 border-2 border-rose-500 rounded-xl shadow-2xl max-w-lg w-full p-6 text-slate-100 text-center relative overflow-hidden">
         {/* Glow backdrop */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-500/20 rounded-full blur-3xl pointer-events-none" />
 
         {/* Diamond Trophy Graphic */}
-        <div className="relative mx-auto mb-4 w-20 h-20 rounded-full bg-gradient-to-b from-cyan-500 to-blue-700 p-0.5 shadow-lg shadow-cyan-500/40 flex items-center justify-center">
-          <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center">
-            <Diamond className="w-10 h-10 text-cyan-300 animate-pulse" />
+        <div className="relative mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full border border-rose-400/60 bg-gradient-to-b from-red-700/50 to-rose-950 p-2 shadow-lg shadow-red-500/40">
+          <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-950">
+            <Diamond className="h-14 w-14 animate-pulse fill-rose-600/70 text-red-400 drop-shadow-[0_0_12px_rgba(248,113,113,0.9)]" />
           </div>
         </div>
 
-        <span className="px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-widest bg-cyan-950 text-cyan-400 border border-cyan-700 inline-block mb-2">
-          MISSION ACCOMPLISHED // HEIST COMPLETE
+        <span className="px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-widest bg-rose-950 text-rose-300 border border-rose-700 inline-block mb-2">
+          100-CARAT RED DIAMOND SECURED
         </span>
 
         <h2 className="text-2xl md:text-3xl font-bold font-mono text-white mb-2">

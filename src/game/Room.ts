@@ -10,7 +10,7 @@ export interface InteractiveObject {
   iconName?: string;
   requiresItem?: string; // item required to fully inspect/reveal, or item that enhances it
   hiddenItem?: Item; // item found upon interacting
-  interactionType?: 'inspect' | 'bookshelf' | 'painting' | 'notepad' | 'vault-tumbler' | 'keypad';
+  interactionType?: 'inspect' | 'bookshelf' | 'painting' | 'notepad' | 'vault-tumbler' | 'keypad' | 'firewall-trap' | 'awareness-drill';
   extraData?: Record<string, any>;
   hasBeenInteracted?: boolean;
 }
@@ -31,6 +31,7 @@ export class Room {
   themeColor: string; // for UI badge/styling accent
   interactiveObjects: InteractiveObject[];
   solvedText: string;
+  resetCount: number;
 
   constructor(
     id: number,
@@ -52,12 +53,14 @@ export class Room {
     this.themeColor = themeColor;
     this.interactiveObjects = interactiveObjects;
     this.solvedText = solvedText;
+    this.resetCount = 0;
   }
 
   /**
    * Resets room state (puzzle and interactive objects) on stage restart.
    */
   reset(): void {
+    this.resetCount++;
     this.puzzle.reset();
     for (const obj of this.interactiveObjects) {
       obj.hasBeenInteracted = false;
