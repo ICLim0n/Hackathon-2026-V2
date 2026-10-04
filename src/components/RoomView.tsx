@@ -40,6 +40,7 @@ export const RoomView: React.FC<RoomViewProps> = ({
   const [selectedBookNumbers, setSelectedBookNumbers] = useState<string[]>([]);
   const [drillAnswers, setDrillAnswers] = useState<Record<string, string>>({});
   const [drillFeedback, setDrillFeedback] = useState<{ message: string; isCorrect: boolean } | null>(null);
+  const galleryBands = room.interactiveObjects.find((obj) => obj.id === 'large_painting')?.extraData?.binaryData;
 
   useEffect(() => {
     setSelectedBookNumbers([]);
@@ -265,15 +266,15 @@ export const RoomView: React.FC<RoomViewProps> = ({
           {room.id === 2 && (
             <div className="relative flex min-h-48 items-center justify-center overflow-hidden rounded border border-purple-300/20 bg-slate-950/60 p-5">
               <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-evenly opacity-80" aria-hidden="true">
-                {[
-                  ['CRIMSON', '0101', 'from-rose-500/30'],
-                  ['GOLD', '1001', 'from-amber-400/30'],
-                  ['COBALT', '0010', 'from-blue-500/30'],
-                  ['SILVER', '0111', 'from-slate-200/25'],
-                ].map(([label, bits, color]) => (
-                  <div key={label} className={`flex h-32 w-[19%] flex-col items-center justify-center rounded bg-gradient-to-b ${color} to-transparent font-mono`}>
-                    <span className="text-[9px] tracking-widest text-white/70">{label}</span>
-                    <span className="mt-2 text-xs font-bold tracking-[0.2em] text-white">{bits}</span>
+                {galleryBands?.map((band: { band: string; binary: string }, index: number) => (
+                  <div
+                    key={band.band}
+                    className={`flex h-32 w-[19%] flex-col items-center justify-center rounded bg-gradient-to-b ${
+                      ['from-rose-500/30', 'from-amber-400/30', 'from-blue-500/30', 'from-slate-200/25'][index]
+                    } to-transparent font-mono`}
+                  >
+                    <span className="text-[9px] tracking-widest text-white/70">{band.band}</span>
+                    <span className="mt-2 text-xs font-bold tracking-[0.2em] text-white">{band.binary}</span>
                   </div>
                 ))}
               </div>

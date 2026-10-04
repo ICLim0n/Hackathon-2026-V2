@@ -17,6 +17,21 @@ function shuffle<T>(values: T[]): T[] {
   return values;
 }
 
+function makeCodeOptions(code: string): string[] {
+  const options = new Set([code]);
+  while (options.size < 4) {
+    const digits = code.split('');
+    const position = randomInt(0, digits.length - 1);
+    let replacement = randomInt(0, 9).toString();
+    while (replacement === digits[position]) {
+      replacement = randomInt(0, 9).toString();
+    }
+    digits[position] = replacement;
+    options.add(digits.join(''));
+  }
+  return shuffle(Array.from(options));
+}
+
 /**
  * Creates the complete set of 5 rooms for the heist game.
  * Uses procedural clue generation for the Security Office to ensure
@@ -107,9 +122,17 @@ export function createHeistRooms(): Room[] {
   );
 
   // === ROOM 2: THE ART GALLERY (Binary Painting) ===
-  // Four 4-bit binary bands decode to the laser disarm sequence 5927.
-  const room2Code = '5927';
-  const room2Options = shuffle([room2Code, '5972', '5297', '9527']);
+  // Each band is a randomly selected 4-bit representation of a decimal digit.
+  const room2Bands = ['I. Crimson Horizon', 'II. Golden Zenith', 'III. Cobalt Abyss', 'IV. Silver Meridian']
+    .map((band) => {
+      const value = randomInt(0, 9);
+      return { band, value: String(value), binary: value.toString(2).padStart(4, '0') };
+    });
+  const room2Code = room2Bands.map(({ value }) => value).join('');
+  const room2Options = makeCodeOptions(room2Code);
+  const room2BandClues = room2Bands
+    .map(({ band, binary }) => `${band}: ${binary}`)
+    .join('\n');
 
   const binaryDatapad = new Item(
     'Binary Translation Guide',
@@ -141,11 +164,11 @@ export function createHeistRooms(): Room[] {
     new Puzzle(
       'DECRYPT THE BINARY PAINTING CODE',
       room2Code,
-      'Inspect the large painting. Convert the four 4-bit binary bands (0101, 1001, 0010, 0111) into numbers.',
+      'Inspect the large painting. Convert each randomized 4-bit band into a decimal digit and select the four-digit sequence.',
       [
         'Binary place values for 4 bits are 8, 4, 2, 1.',
-        'First band: 0101 = 4 + 1 = 5. Second band: 1001 = 8 + 1 = 9.',
-        'Third band: 0010 = 2. Fourth band: 0111 = 4 + 2 + 1 = 7. The code is 5927.',
+        `Band I is ${room2Bands[0].binary}, which decodes to ${room2Bands[0].value}.`,
+        `Read all four bands from left to right: ${room2Bands.map(({ value }) => value).join(' ')}.`,
       ],
       'code',
       '4-DIGIT PIN'
@@ -157,16 +180,11 @@ export function createHeistRooms(): Room[] {
         id: 'large_painting',
         name: 'Abstract Oil Painting: "The Binary Dawn"',
         description: 'An expansive modern masterpiece. Hidden in its gold-leaf brushstrokes are four painted binary sequences.',
-        clue: 'Painted along the four color bands:\nBand I (Crimson): 0101\nBand II (Gold): 1001\nBand III (Cobalt): 0010\nBand IV (Silver): 0111\n\nDecode each 4-bit value to discover the security code!',
+        clue: `Painted along the four color bands:\n${room2BandClues}\n\nDecode each 4-bit value from left to right to discover the security code!`,
         iconName: 'Palette',
         interactionType: 'painting',
         extraData: {
-          binaryData: [
-            { band: 'I. Crimson Horizon', binary: '0101', value: '5' },
-            { band: 'II. Golden Zenith', binary: '1001', value: '9' },
-            { band: 'III. Cobalt Abyss', binary: '0010', value: '2' },
-            { band: 'IV. Silver Meridian', binary: '0111', value: '7' },
-          ],
+          binaryData: room2Bands,
           options: room2Options,
         },
       },
@@ -225,7 +243,7 @@ export function createHeistRooms(): Room[] {
         'The two sound protocols are in volumes 2 and 8.',
       ],
       'text',
-      'TWO VOLUME NUMBERS (E.G. 2,8)'
+      'TWO VOLUME NUMBERS'
     ),
     100,
     'amber',
