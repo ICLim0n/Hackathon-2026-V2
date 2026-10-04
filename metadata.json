@@ -1,0 +1,6 @@
+{
+  "name": "Heist Breakout: Vault Escape Room",
+  "description": "An interactive heist-themed escape room game. Infiltrate high-security chambers, decrypt binary paintings, decode book ciphers, and crack the master vault.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
